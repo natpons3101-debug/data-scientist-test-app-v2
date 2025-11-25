@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Science Toolkit</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #581c87 50%, #0f172a 100%);
+            min-height: 100vh;
+            padding: 24px;
+            color: #e9d5ff;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+            padding-bottom: 24px;
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(to right, #c084fc, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: rgba(233, 213, 255, 0.7);
+            font-size: 0.875rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(30, 41, 59, 0.5);
+            color: #c084fc;
+            border: none;
+            font-size: 0.95rem;
+        }
+
+        .tab:hover {
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .tab.active {
+            background: #a855f7;
+            color: white;
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.5);
+        }
+
+        .upload-section {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .upload-container {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .upload-box {
+            flex: 1;
+            min-width: 250px;
+            border: 2px dashed rgba(168, 85, 247, 0.5);
+            border-radius: 12px;
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-box:hover {
+            border-color: #a855f7;
+        }
+
+        .upload-box input {
+            display: none;
+        }
+
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(to right, #a855f7, #ec4899);
+            color: white;
+            font-weight: bold;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.5);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(168, 85, 247, 0.6);
+        }
+
+        .content-box {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid rgba(168, 85, 247, 0.2);
+        }
+
+        .stat-card label {
+            font-size: 0.875rem;
+            color: rgba(233, 213, 255, 0.7);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #c084fc;
+        }
+
+        .columns-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .column-box {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .column-box-title {
+            font-size: 0.875rem;
+            color: rgba(233, 213, 255, 0.7);
+            margin-bottom: 12px;
+        }
+
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+
+        .tag-numeric {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .tag-categorical {
+            background: rgba(236, 72, 153, 0.2);
+            color: #f9a8d4;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        table {
+            width: 100%;
+            font-size: 0.875rem;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 12px;
+            color: #c084fc;
+            font-weight: 500;
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3);
+        }
+
+        td {
+            padding: 12px;
+            color: rgba(233, 213, 255, 0.8);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px;
+        }
+
+        .empty-state p {
+            color: rgba(233, 213, 255, 0.5);
+        }
+
+        .code-section {
+            margin-bottom: 24px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .code-header {
+            background: #1e293b;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .code-header span {
+            color: #c084fc;
+            font-weight: 500;
+        }
+
+        .btn-copy {
+            background: rgba(168, 85, 247, 0.2);
+            color: #c084fc;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-copy:hover {
+            background: rgba(168, 85, 247, 0.3);
+        }
+
+        pre {
+            padding: 16px;
+            overflow-x: auto;
+            margin: 0;
+        }
+
+        code {
+            color: rgba(233, 213, 255, 0.9);
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        .stats-detail {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+
+        .stats-detail h4 {
+            color: #c084fc;
+            font-size: 1.125rem;
+            margin-bottom: 12px;
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 12px;
+        }
+
+        .mini-stat label {
+            font-size: 0.75rem;
+            color: rgba(233, 213, 255, 0.5);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .mini-stat .value {
+            font-size: 1.125rem;
+            font-weight: bold;
+            color: #c084fc;
+        }
+
+        .mini-stat.missing .value {
+            color: #f87171;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        h3 {
+            color: #c084fc;
+            font-size: 1.25rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>DATA SCIENCE TOOLKIT</h1>
+            <p>Quick EDA & Code Generation</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('eda')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="20" x2="12" y2="10"></line>
+                    <line x1="18" y1="20" x2="18" y2="4"></line>
+                    <line x1="6" y1="20" x2="6" y2="16"></line>
+                </svg>
+                Quick EDA
+            </button>
+            <button class="tab" onclick="switchTab('code')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="16 18 22 12 16 6"></polyline>
+                    <polyline points="8 6 2 12 8 18"></polyline>
+                </svg>
+                Code Snippets
+            </button>
+            <button class="tab" onclick="switchTab('stats')">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                    <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                    <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                </svg>
+                Statistics
+            </button>
+        </div>
+
+        <div id="eda-tab" class="tab-content">
+            <div class="upload-section">
+                <div class="upload-container">
+                    <label class="upload-box" for="file-upload">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17 8 12 3 7 8"></polyline>
+                            <line x1="12" y1="3" x2="12" y2="15"></line>
+                        </svg>
+                        <p style="color: #c084fc; font-weight: 500; margin-bottom: 4px;">Upload CSV File</p>
+                        <p style="color: rgba(233, 213, 255, 0.5); font-size: 0.875rem;">Click to browse</p>
+                        <input type="file" id="file-upload" accept=".csv" onchange="handleFileUpload(event)">
+                    </label>
+                    
+                    <div style="color: rgba(233, 213, 255, 0.5);">OR</div>
+                    
+                    <button class="btn-primary" onclick="generateSampleData()">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        Generate Sample Data
+                    </button>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <div id="results" class="hidden">
+                    <h3>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                        </svg>
+                        Dataset Overview
+                    </h3>
+                    <div class="stats-grid" id="overview-stats"></div>
+
+                    <h3>Column Types</h3>
+                    <div class="columns-section">
+                        <div class="column-box">
+                            <div class="column-box-title">Numeric</div>
+                            <div class="tags" id="numeric-cols"></div>
+                        </div>
+                        <div class="column-box">
+                            <div class="column-box-title">Categorical</div>
+                            <div class="tags" id="categorical-cols"></div>
+                        </div>
+                    </div>
+
+                    <h3>Sample Data (First 5 rows)</h3>
+                    <div style="overflow-x: auto;">
+                        <table id="data-table"></table>
+                    </div>
+                </div>
+
+                <div id="empty-state" class="empty-state">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin: 0 auto 16px; color: rgba(168, 85, 247, 0.5);">
+                        <line x1="12" y1="20" x2="12" y2="10"></line>
+                        <line x1="18" y1="20" x2="18" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="16"></line>
+                    </svg>
+                    <p>Upload a CSV or generate sample data to start</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="code-tab" class="tab-content hidden">
+            <div class="content-box">
+                <h3>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="16 18 22 12 16 6"></polyline>
+                        <polyline points="8 6 2 12 8 18"></polyline>
+                    </svg>
+                    Code Snippets
+                </h3>
+
+                <div class="code-section">
+                    <div class="code-header">
+                        <span>Pandas</span>
+                        <button class="btn-copy" onclick="copyCode('pandas')">Copy</button>
+                    </div>
+                    <pre><code id="code-pandas">import pandas as pd
+import numpy as np
+
+# Load data
+df = pd.read_csv('data.csv')
+
+# Quick overview
+print(df.info())
+print(df.describe())
+
+# Missing values
+print(df.isnull().sum())
+
+# Correlation matrix
+corr = df.corr()
+print(corr)</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <div class="code-header">
+                        <span>Scikit-learn</span>
+                        <button class="btn-copy" onclick="copyCode('sklearn')">Copy</button>
+                    </div>
+                    <pre><code id="code-sklearn">from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train model
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train_scaled, y_train)
+
+# Evaluate
+score = model.score(X_test_scaled, y_test)
+print(f'Accuracy: {score:.4f}')</code></pre>
+                </div>
+
+                <div class="code-section">
+                    <div class="code-header">
+                        <span>Visualization</span>
+                        <button class="btn-copy" onclick="copyCode('viz')">Copy</button>
+                    </div>
+                    <pre><code id="code-viz">import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Set style
+sns.set_style('darkgrid')
+plt.figure(figsize=(12, 6))
+
+# Distribution plot
+sns.histplot(df['value'], kde=True, bins=30)
+plt.title('Distribution Analysis')
+
+# Correlation heatmap
+plt.figure(figsize=(10, 8))
+sns.heatmap(df.corr(), annot=True, cmap='coolwarm', center=0)
+plt.title('Correlation Matrix')
+
+# Box plots
+plt.figure(figsize=(12, 6))
+sns.boxplot(data=df, x='category', y='value')
+plt.title('Value by Category')
+
+plt.tight_layout()
+plt.show()</code></pre>
+                </div>
+            </div>
+        </div>
+
+        <div id="stats-tab" class="tab-content hidden">
+            <div class="content-box">
+                <h3>Descriptive Statistics</h3>
+                <div id="stats-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentData = null;
+        let currentAnalysis = null;
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.closest('.tab').classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(tabName + '-tab').classList.remove('hidden');
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    const data = d3.csvParse(text, d3.autoType);
+                    currentData = data;
+                    performAnalysis(data);
+                    displayResults();
+                } catch (error) {
+                    alert('Erreur lors de la lecture du fichier CSV');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function generateSampleData() {
+            const sample = [];
+            for (let i = 0; i < 100; i++) {
+                sample.push({
+                    id: i + 1,
+                    value: Math.random() * 100,
+                    category: ['A', 'B', 'C'][Math.floor(Math.random() * 3)],
+                    score: Math.random() * 10,
+                    timestamp: new Date(2024, 0, 1 + i).toISOString().split('T')[0]
+                });
+            }
+            currentData = sample;
+            performAnalysis(sample);
+            displayResults();
+        }
+
+        function performAnalysis(data) {
+            const columns = Object.keys(data[0]);
+            const numericCols = columns.filter(col => typeof data[0][col] === 'number');
+            const categoricalCols = columns.filter(col => !numericCols.includes(col));
+
+            const stats = {};
+            numericCols.forEach(col => {
+                const values = data.map(row => row[col]).filter(v => v != null);
+                stats[col] = {
+                    mean: d3.mean(values),
+                    median: d3.median(values),
+                    min: d3.min(values),
+                    max: d3.max(values),
+                    std: d3.deviation(values),
+                    missing: data.length - values.length
+                };
+            });
+
+            currentAnalysis = {
+                rows: data.length,
+                columns: columns.length,
+                numericCols,
+                categoricalCols,
+                stats,
+                allColumns: columns
+            };
+        }
+
+        function displayResults() {
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+
+            // Overview stats
+            const overviewHtml = `
+                <div class="stat-card">
+                    <label>Rows</label>
+                    <div class="value">${currentAnalysis.rows}</div>
+                </div>
+                <div class="stat-card">
+                    <label>Columns</label>
+                    <div class="value">${currentAnalysis.columns}</div>
+                </div>
+                <div class="stat-card">
+                    <label>Numeric</label>
+                    <div class="value">${currentAnalysis.numericCols.length}</div>
+                </div>
+                <div class="stat-card">
+                    <label>Categorical</label>
+                    <div class="value">${currentAnalysis.categoricalCols.length}</div>
+                </div>
+            `;
+            document.getElementById('overview-stats').innerHTML = overviewHtml;
+
+            // Numeric columns
+            const numericHtml = currentAnalysis.numericCols
+                .map(col => `<span class="tag tag-numeric">${col}</span>`)
+                .join('');
+            document.getElementById('numeric-cols').innerHTML = numericHtml || '<span style="color: rgba(233, 213, 255, 0.5);">None</span>';
+
+            // Categorical columns
+            const categoricalHtml = currentAnalysis.categoricalCols
+                .map(col => `<span class="tag tag-categorical">${col}</span>`)
+                .join('');
+            document.getElementById('categorical-cols').innerHTML = categoricalHtml || '<span style="color: rgba(233, 213, 255, 0.5);">None</span>';
+
+            // Sample data table
+            const tableHeaders = currentAnalysis.allColumns
+                .map(col => `<th>${col}</th>`)
+                .join('');
+            
+            const tableRows = currentData.slice(0, 5)
+                .map(row => {
+                    const cells = currentAnalysis.allColumns
+                        .map(col => {
+                            const val = row[col];
+                            return `<td>${typeof val === 'number' ? val.toFixed(2) : val}</td>`;
+                        })
+                        .join('');
+                    return `<tr>${cells}</tr>`;
+                })
+                .join('');
+
+            document.getElementById('data-table').innerHTML = `
+                <thead><tr>${tableHeaders}</tr></thead>
+                <tbody>${tableRows}</tbody>
+            `;
+
+            // Stats content
+            displayStatistics();
+        }
+
+        function displayStatistics() {
+            const statsHtml = Object.entries(currentAnalysis.stats)
+                .map(([col, stats]) => `
+                    <div class="stats-detail">
+                        <h4>${col}</h4>
+                        <div class="mini-stats">
+                            <div class="mini-stat">
+                                <label>Mean</label>
+                                <div class="value">${stats.mean?.toFixed(2) || 'N/A'}</div>
+                            </div>
+                            <div class="mini-stat">
+                                <label>Median</label>
+                                <div class="value">${stats.median?.toFixed(2) || 'N/A'}</div>
+                            </div>
+                            <div class="mini-stat">
+                                <label>Std</label>
+                                <div class="value">${stats.std?.toFixed(2) || 'N/A'}</div>
+                            </div>
+                            <div class="mini-stat">
+                                <label>Min</label>
+                                <div class="value">${stats.min?.toFixed(2) || 'N/A'}</div>
+                            </div>
+                            <div class="mini-stat">
+                                <label>Max</label>
+                                <div class="value">${stats.max?.toFixed(2) || 'N/A'}</div>
+                            </div>
+                            <div class="mini-stat missing">
+                                <label>Missing</label>
+                                <div class="value">${stats.missing}</div>
+                            </div>
+                        </div>
+                    </div>
+                `)
+                .join('');
+
+            document.getElementById('stats-content').innerHTML = statsHtml || '<p style="color: rgba(233, 213, 255, 0.5); text-align: center; padding: 24px;">No numeric columns available</p>';
+        }
+
+        function copyCode(type) {
+            const codeElement = document.getElementById('code-' + type);
+            const text = codeElement.textContent;
+            
+            navigator.clipboard.writeText(text).then(() => {
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
